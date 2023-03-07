@@ -35,7 +35,7 @@
 \*#################################################################################*/
 include <BOSL2/std.scad>	// https://github.com/revarbat/BOSL2/wiki
 
-part = "assembly";				//[front, back, both, plate, duct, assembly]
+part = "plate";				//[front, back, both, plate, duct, assembly]
 
 show_ghosts = false;			//Include phantom fans for spacing
 
@@ -78,7 +78,7 @@ mount_plate = [55, 52, 3];
 plate_hole = [34, 32];
 plate_hole_offset = 2.5;
 plate_hole_rounding = [15, 5, 5, 15];
-mount_hole = [2, 40, 2.8]; 	//[offset, spacing, dia];
+mount_hole = [2, 40, 2.8]; 			//[offset, spacing, dia];
 plate_rounding = 5;
 plate_pad_lift = 1;					// support under heatbreak fan.   
 plate_v6_anchor = [3, 7 , mount_plate.z + 7];
