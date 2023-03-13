@@ -1,9 +1,0 @@
-{
-    "fileFormatVersion": "1",
-    "parameterSets": {
-        "New set 1": {
-            "part": "assembly",
-            "show_ghosts": "false"
-        }
-    }
-}

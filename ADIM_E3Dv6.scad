@@ -35,14 +35,14 @@
 \*#################################################################################*/
 include <BOSL2/std.scad>	// https://github.com/revarbat/BOSL2/wiki
 
-part = "plate";				//[front, back, both, plate, duct, assembly]
+part = "plate";				//[front, back, both, plate, duct, assembly, duct_mount]
 
-show_ghosts = false;			//Include phantom fans for spacing
+show_ghosts = false;		//Include phantom fans for spacing
 
 module hide_variables () {}	// variables below hidden from Customizer
 
-$fn = 72;               	//openSCAD roundness variable
-epsilon = 0.01;         	//fudge factor to display holes properly in preview mode
+$fn = 72;				//openSCAD roundness variable
+eps = 0.01;         	//fudge factor to display holes properly in preview mode
 
 back = false;
 front = true;
@@ -94,9 +94,9 @@ ext_support_base = [ext_size1.x, ext_size1.y, v6_block.z + mount_plate.z];
 ext_support_yoffset = mount_hole.y/2 + 0.8;
  
 
-duct_block = [fan_case.x, fan_case.y, 14];
+duct_block = [duct_fan_mount.x, duct_fan_mount.y, 14];
 duct_floor = 1.5;
-duct_shift = [10,0];
+duct_shift = [0,10];
 duct_length = 16;
 
 /*#################################################################################*\
@@ -105,13 +105,14 @@ duct_length = 16;
 
 \*#################################################################################*/
 	
-if (part == "back")  	{ mount_half(back); }
-if (part == "front") 	{ mount_half(front); }
-if (part == "both")  	{ right(v6_block.x/2 + 5) mount_half(front);
-					   	  left(v6_block.x/2 + 5) mount_half(back); }
-if (part == "plate") 	{ plate(); }
-if (part == "duct")  	{ rot([0,-90,90]) duct(); }
-if (part == "assembly")	{ assembly();}
+if (part == "back")  	  { mount_half(back); }
+if (part == "front") 	  { mount_half(front); }
+if (part == "both")  	  { right(v6_block.x/2 + 5) mount_half(front);
+					   	    left(v6_block.x/2 + 5) mount_half(back); }
+if (part == "plate") 	  { plate(); }
+if (part == "duct_mount") { duct_mount(); }
+if (part == "duct")  	  { rot([0,-0,0]) duct(); }
+if (part == "assembly")	  { assembly();}
 
 /*#################################################################################*\
     
@@ -126,7 +127,7 @@ module assembly() {
 		mount_half(back);
 		zrot(180) mount_half(front);
 	}
-	down(duct_block.z) fwd((mount_plate.x + duct_block.x)/2) zrot(90) duct();
+	down(duct_block.z) fwd((mount_plate.x + duct_block.x)/2 - 1) zrot(0) duct();
 
 }
 
@@ -136,12 +137,12 @@ module mount_half(is_front) {
 		back_half() mount();
 		up(v6_collar_pos - v6_collar.z/2)  
 			union() {
-				xcopies(v6_clamp_span) fwd(epsilon/2) ycyl(d = hex_hole, h = v6_block.y/2 + epsilon, circum = true, anchor = FWD);
+				xcopies(v6_clamp_span) fwd(eps/2) ycyl(d = hex_hole, h = v6_block.y/2 + eps, circum = true, anchor = FWD);
 				back(4) xcopies(v6_clamp_span) 
 					if (is_front) {
-						fwd(epsilon/2) ycyl(d = hex_head, h = v6_block.y/2 + epsilon, circum = true, anchor = FWD);
+						fwd(eps/2) ycyl(d = hex_head, h = v6_block.y/2 + eps, circum = true, anchor = FWD);
 					} else {
-						ycyl(d = hex_nut, h = v6_block.y/2 + epsilon, $fn = 6, anchor = FWD);  
+						ycyl(d = hex_nut, h = v6_block.y/2 + eps, $fn = 6, anchor = FWD);  
 					}
 			}
 	}
@@ -152,9 +153,9 @@ module mount_half(is_front) {
 					move(ext_mount_pos) extruder_mount();
 					move([-v6_block.x/2 + ext_mount.x, ext_mount.y/2, v6_block.z]) rot([0,-90,90]) rounding_edge_mask(l= ext_mount.y, r = 2);
 				}
-				up(v6_block.z) zcyl(h = ext_mount.z + epsilon, d = 15, rounding2 = 2, anchor = BOT);
+				up(v6_block.z) zcyl(h = ext_mount.z + eps, d = 15, rounding2 = 2, anchor = BOT);
 			}
-			down(epsilon/2) #zcyl(h = 70, d = 4, circum = true, anchor = BOT);   // hole for PTFE tube
+			down(eps/2) #zcyl(h = 70, d = 4, circum = true, anchor = BOT);   // hole for PTFE tube
 		}
 		move([v6_block.x/2, ext_mount.y/2, v6_block.z]) rot([0,90,-90]) interior_fillet(l = ext_mount.y, r = 8);
 		difference() {
@@ -176,8 +177,8 @@ module mount() {
 			cyl(h = v6_fins.z, d = v6_fins.x, anchor = BOT);
 			up(v6_fins.z) cyl(h = v6_neck.z, d = v6_neck.x,  anchor = BOT);
 			up(fan_pos) {
-				xcyl(h = v6_block.x + epsilon, d = fan.x);
-				yrot(90) grid_copies(spacing = [fan.y, fan.y])  cyl(d = pan_hole, l = v6_block.x + epsilon, circum = true);
+				xcyl(h = v6_block.x + eps, d = fan.x);
+				yrot(90) grid_copies(spacing = [fan.y, fan.y])  cyl(d = pan_hole, l = v6_block.x + eps, circum = true);
 			}
 		}
 	}
@@ -201,37 +202,41 @@ module extruder_mount() {
 
 module adj_yhole(len, dia, span) {		//adjustment mounting hole aligned with y axis
 	hull() {
-		left(span/2)  ycyl(l = len + epsilon, d = dia, circum = true);
-		right(span/2) ycyl(l = len + epsilon, d = dia, circum = true);
+		left(span/2)  ycyl(l = len + eps, d = dia, circum = true);
+		right(span/2) ycyl(l = len + eps, d = dia, circum = true);
 	}
 }
 
 
 module plate() {
-	difference() {
-		union() {
+	tag_scope("plate")
+	diff() {
+		cuboid(mount_plate, rounding = plate_rounding, edges = "Z", anchor = BOT) {
 			extruder_support();
-			cuboid(mount_plate, rounding = plate_rounding, edges = "Z", anchor = BOT);
-			left(mount_hole.x) up(mount_plate.z) ycopies(mount_hole.y) 
+			position(FWD+BOT) duct_mount();
+			left(mount_hole.x) up(mount_plate.z/2) ycopies(mount_hole.y) 
 				zcyl(h = mount_plate.z + 3, d = mount_hole.z + 2, rounding1 = -1, rounding2 = 2, anchor = BOT);
-		}
-		union() {
-			down(epsilon/2) {
-				right(plate_hole_offset) 
-					prismoid(size1 = plate_hole, size2 = plate_hole, h = mount_plate.z + epsilon, rounding = plate_hole_rounding, anchor = BOT);
-				left(mount_hole.x) ycopies(mount_hole.y) zcyl(h = mount_plate.z + 5, d = mount_hole.z, anchor = BOT); 
+			position(RIGHT+BOT) {
+				zrot(180) v6_block_anchor();
+				left(v6_block.x + fan_case.z + plate_v6_anchor.x) v6_block_anchor();  	// tabs for mounting the v6-block
+			}
+			
+
+			tag("remove") {
+				position(BOT) down(eps/2) right(plate_hole_offset) 
+					prismoid(size1 = plate_hole, size2 = plate_hole, h = mount_plate.z + eps, rounding = plate_hole_rounding, anchor = BOT);
+					
+				position(BOT) left(mount_hole.x) ycopies(mount_hole.y) zcyl(h = mount_plate.z + 5, d = mount_hole.z, anchor = BOT); 
+				
 			}
 		}
 	}
 	if (show_ghosts) {
-		*cuboid([v6_block.x, v6_block.y,mount_plate.z+7], anchor = BOT);			// dummy v6 block for spacing
+		color("skyblue",0.99) cuboid([v6_block.x, v6_block.y,mount_plate.z+7], anchor = BOT);			// dummy v6 block for spacing
 		color("red",0.3) up(mount_plate.z + fan_pos)
 			right(v6_block.x/2) yrot(90) cuboid(fan_case, anchor = BOT);				// dummy fan for spacing
-	}
-
-	left((v6_block.x + plate_v6_anchor.x)/2) v6_block_anchor();  	// tabs for mounting the v6-block
-	right(mount_plate.x/2 + 0.5 ) zrot(180) v6_block_anchor();
-	duct_mount();  
+	} 
+	
 }
 
 module v6_block_anchor() {
@@ -244,23 +249,21 @@ module v6_block_anchor() {
 }
 
 module duct_mount() {
-	fwd((mount_plate.y + duct_fan_mount.y)/2) {		//add a fan mount for part cooling
-		difference() {
-			union() {
-				cuboid([duct_fan_mount.x, duct_fan_mount.y, mount_plate.z], rounding = fan_corner, edges = [FWD+LEFT, FWD+RIGHT], anchor = BOT);
-				move([-duct_fan_mount.x/2, duct_fan_mount.y/2]) fillet(l = mount_plate.z, r = 7, ang = 90, spin = 180, anchor = BOT);
-				move([duct_fan_mount.x/2, duct_fan_mount.y/2])  fillet(l = mount_plate.z, r = 7, ang = 90, spin = -90, anchor = BOT);
-				if(show_ghosts) { color("red",0.5) up(mount_plate.z) cuboid(fan_case, anchor = BOT); }
-			}
-			down(epsilon/2) {
-				union() {
-					zcyl(h = mount_plate.z + epsilon, d = fan.x, anchor = BOT);
-					grid_copies(spacing = [fan.y, fan.y])  cyl(d = pan_hole2, h = mount_plate.z + epsilon, circum = true, anchor = BOT);
-				}
-			}
+	tag_scope("duct_mount")
+		diff() {
+			cuboid([duct_fan_mount.x, duct_fan_mount.y, mount_plate.z], rounding = fan_corner, edges = [FWD+LEFT, FWD+RIGHT], anchor = BOT+BACK) {
+				position(BACK+LEFT+BOT) fillet(l = mount_plate.z, r = 7, ang = 90, spin = 180, anchor = BOT);
+				position(BACK+RIGHT+BOT) fillet(l = mount_plate.z, r = 7, ang = 90, spin = -90, anchor = BOT);
+				if(show_ghosts) { color("red",0.5)  cuboid(fan_case, anchor = BOT); }
+			
+			force_tag("remove") position(BOT) down(eps/2) {
+				zcyl(h = mount_plate.z + eps, d = fan.x, anchor = BOT);
+				grid_copies(spacing = [fan.y, fan.y])  cyl(d = pan_hole2, h = mount_plate.z + eps, circum = true, anchor = BOT);
+			}		
 		}
 	}
 }
+
 
 module extruder_support() {
 	fwd(ext_support_yoffset)  {
@@ -275,7 +278,7 @@ module extruder_support() {
 					left(ext_size2.x) xrot(-90) rounding_edge_mask(l = ext_size2.y, r = v6_corner);
 					move([-ext_size2.x/2, -ext_size2.x/2, 0]) rot([90, 0, 90]) rounding_angled_edge_mask(ang = 45, h = ext_size2.x, r = v6_corner);
 				}
-				move([0, ext_support_yoffset - (mount_plate.y + duct_fan_mount.y)/2, mount_plate.z + epsilon])	
+				move([0, ext_support_yoffset - (mount_plate.y + duct_fan_mount.y)/2, mount_plate.z + eps])	
 					grid_copies(spacing = fan.y) cyl(d = access_hole, h = v6_block.z, circum = true, anchor = BOT);	
 			}
 		}
@@ -284,37 +287,25 @@ module extruder_support() {
 
 
 module duct() {
-	difference() {
-		union() {
-			cuboid(duct_block, rounding = fan_corner, except = TOP, anchor = BOT);
-		}
-		union() {
-			right(duct_block.x/2) up(duct_floor) 	{
-				cuboid([8 ,fan.y - fan_hole - 1, duct_block.z], anchor = BOT+RIGHT);
+	tag_scope("duct")
+	diff() {
+		cuboid(duct_block, rounding = fan_corner, except = TOP, anchor = BOT) {
+			tag("remove") {
+				position(BOT) up(duct_floor) { 
+					cyl(d = fan.x, h = duct_block.z,  anchor = BOT);
+					grid_copies(spacing = fan.y) cyl(d = fan_hole, h = duct_block.z, circum = true, anchor = BOT);
+				}
+				position(BACK) back(1) cuboid([fan.y - fan_hole - 1, 8, duct_block.z - duct_floor - 1], anchor = BACK+CENTER);
+			}		
+			tag("keep") {
+				position(BACK) fwd(1) xrot(-90)
+				rect_tube(size1 = [fan.y - fan_hole, duct_block.z], isize1 = [fan.y - fan_hole - 1, duct_block.z - duct_floor],
+					size2 = [duct_block.y/2, 4], isize2 = [duct_block.y/2 - 0.5, 3.5], shift = duct_shift,
+					l = duct_length, rounding = fan_corner, anchor = BOT);
 			}
-			up(duct_block.z + epsilon) {
-				cyl(d = fan.x, h = duct_block.z - duct_floor,  anchor = TOP);
-				grid_copies(spacing = fan.y) cyl(d = fan_hole, h = duct_block.z/2, circum = true, anchor = TOP);
-			}
-		}
-	}
-	difference() {
-		union() {
-			right(duct_block.x/2) yrot(90)
-				rect_tube(size = [duct_block.z, (fan.y - fan_hole)], l = 5, wall = 1, rounding = [fan_corner,0,0,fan_corner],
-					irounding = fan_corner, anchor = TOP+RIGHT);
-			right((duct_block.x)/2) yrot(90) 
-				rect_tube(size1 = [duct_block.z, fan.y - fan_hole], isize1 = [duct_block.z - duct_floor, fan.y - fan_hole - 1],
-					size2 = [4, duct_block.y/2], isize2 = [3.5, duct_block.y/2 - 0.5], shift = duct_shift,
-					l = duct_length, rounding = fan_corner, anchor = RIGHT+BOT);
-		}
-		up(duct_block.z + epsilon) {
-			cyl(d = fan.x, h = duct_block.z - duct_floor,  anchor = TOP);
-			*grid_copies(spacing = fan.y) cyl(d = fan_hole, h = duct_block.z/2, circum = true, anchor = TOP);
 		}
 	}
 }
-
 
 module echo2(arg) {
 	echo(str("\n\n", arg, "\n\n" ));
