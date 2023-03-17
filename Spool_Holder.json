@@ -1,0 +1,9 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "New set 1": {
+            "part": "combo",
+            "rail": "20"
+        }
+    }
+}

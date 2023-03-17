@@ -1,0 +1,12 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "New set 1": {
+            "rail": "20"
+        },
+        "New set 2": {
+            "part": "mast",
+            "rail": "20"
+        }
+    }
+}
