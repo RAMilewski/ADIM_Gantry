@@ -7,6 +7,10 @@
         "New set 2": {
             "part": "mast",
             "rail": "20"
+        },
+        "New set 3": {
+            "part": "mast",
+            "rail": "30"
         }
     }
 }

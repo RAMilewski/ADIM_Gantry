@@ -91,7 +91,6 @@ module mast() {
             attach(TOP) xcyl(d = mast.x, h = mast.x, rounding = roundness)
             tag("remove"){
                 right(wall + eps) xcyl(d = spindle.x + 2 * $slop, circum = true, h = mast.x);
-                xcyl(d = screw.x + clearance, h = mast.x + eps);
             }  
     }
 }   
