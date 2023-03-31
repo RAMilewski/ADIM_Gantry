@@ -35,7 +35,7 @@
 \*#################################################################################*/
 include <BOSL2/std.scad>	// https://github.com/revarbat/BOSL2/wiki
 
-part = "plate";				//[front, back, both, plate, duct, assembly, duct_mount]
+part = "plate";				//[front, back, both, plate, duct, wire_clamp, assembly, duct_mount]
 
 show_ghosts = false;		//Include phantom fans for spacing
 
@@ -99,6 +99,8 @@ duct_floor = 1.5;
 duct_shift = [0,10];
 duct_length = 16;
 
+wire_clamp = [40, 10, 5];
+
 /*#################################################################################*\
     
     Main
@@ -112,7 +114,8 @@ if (part == "both")  	  { right(v6_block.x/2 + 5) mount_half(front);
 if (part == "plate") 	  { plate(); }
 if (part == "duct_mount") { duct_mount(); }
 if (part == "duct")  	  { rot([0,-0,0]) duct(); }
-if (part == "assembly")	  { assembly();}
+if (part == "wire_clamp") { wire_clamp(); }	
+if (part == "assembly")	  { assembly(); }
 
 /*#################################################################################*\
     
@@ -303,6 +306,15 @@ module duct() {
 					size2 = [duct_block.y/2, 4], isize2 = [duct_block.y/2 - 0.5, 3.5], shift = duct_shift,
 					l = duct_length, rounding = fan_corner, anchor = BOT);
 			}
+		}
+	}
+}
+
+module wire_clamp() {
+	diff() {
+		cuboid(wire_clamp, rounding = 1, anchor = BOT);
+		tag("remove") {
+			xcopies(n = 2, l = 25) cuboid([7, 3.5, wire_clamp.z+1], rounding = 1.75, edges = "Z", anchor = BOT);
 		}
 	}
 }
