@@ -35,7 +35,7 @@
 \*#################################################################################*/
 include <BOSL2/std.scad>	// https://github.com/revarbat/BOSL2/wiki
 
-part = "plate";				//[front, back, both, plate, duct, wire_clamp, assembly, duct_mount]
+part = "ystop";				//[front, back, both, plate, duct, wire_clamp, duct_mount, spacer, xstop, ystop, assembly]
 
 show_ghosts = false;		//Include phantom fans for spacing
 
@@ -107,15 +107,18 @@ wire_clamp = [40, 10, 5];
 
 \*#################################################################################*/
 	
-if (part == "back")  	  { mount_half(back); }
-if (part == "front") 	  { mount_half(front); }
-if (part == "both")  	  { right(v6_block.x/2 + 5) mount_half(front);
+if (part == "back")  	  	{ mount_half(back); }
+if (part == "front") 	  	{ mount_half(front); }
+if (part == "both")  	  	{ right(v6_block.x/2 + 5) mount_half(front);
 					   	    left(v6_block.x/2 + 5) mount_half(back); }
-if (part == "plate") 	  { plate(); }
-if (part == "duct_mount") { duct_mount(); }
-if (part == "duct")  	  { rot([0,-0,0]) duct(); }
-if (part == "wire_clamp") { wire_clamp(); }	
-if (part == "assembly")	  { assembly(); }
+if (part == "plate") 	  	{ plate(); }
+if (part == "duct_mount") 	{ duct_mount(); }
+if (part == "duct")  	  	{ rot([0,-0,0]) duct(); }
+if (part == "wire_clamp") 	{ wire_clamp(); }	
+if (part == "spacer")	  	{ spacer(38); }
+if (part == "xstop")		{ xstop(38); }
+if (part == "ystop")		{ ystop(20);}
+if (part == "assembly")	  	{ assembly(); }
 
 /*#################################################################################*\
     
@@ -316,6 +319,27 @@ module wire_clamp() {
 		tag("remove") {
 			xcopies(n = 2, l = 25) cuboid([7, 3.5, wire_clamp.z+1], rounding = 1.75, edges = "Z", anchor = BOT);
 		}
+	}
+}
+
+module spacer(h) {
+	tube(id = 6, wall = 2, h = h, anchor = BOT);
+}
+
+
+module xstop(h) {
+	difference() {
+		cuboid([20,20,h-5], rounding = 2, except = BOT, anchor = BOT);
+		move([3,3,0]) cyl(d = 6, h = h-5, anchor = BOT); 
+	}
+	move([3,3,h-5]) tube(id = 6, wall = 2, h = 5, anchor = BOT);
+}
+
+
+module ystop(y) {
+	difference() {
+		cuboid([25, 9, 10 + y], rounding = 2, anchor = BOT);
+		up(20) cuboid([25, 4, 10], rounding = -1, edges = TOP, anchor = BOT);
 	}
 }
 
